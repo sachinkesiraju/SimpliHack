@@ -34,10 +34,10 @@ static NSString *key = @"e78fe45c85448e212d3a1eb4a990da93";
      }];
 }
 
-+ (void) getEntitiesForText:(NSString *)text withCompletion:(CompletionHandler)completion //alchemy
++ (void) getEntitiesForText:(NSString *)text withCompletion:(void (^)(NSDictionary *, NSError *))completion
 {
     NSString *url = [NSString stringWithFormat:@"http://access.alchemyapi.com/calls/text/TextGetRankedNamedEntities?apikey=4aa1a621abe339cc8b6571257e7dff067f00de9d&text=%@&outputMode=json", [self getEncodedString:text]];
-    __block NSArray *summary;
+    __block NSDictionary *summary;
     __block NSError *jError;
     NSMutableURLRequest *request = [[NSMutableURLRequest alloc] initWithURL:[NSURL URLWithString:url]];
     [self performNetworkRequestWithRequest:request withCompletion:^(NSDictionary *result, NSURLResponse *response, NSError *error)

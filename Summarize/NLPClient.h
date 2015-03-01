@@ -15,6 +15,6 @@ typedef void (^CompletionHandler) (NSArray *resultsArray, NSError *error);
 + (void) getSummaryForText: (NSString *) text withCompletion: (CompletionHandler) completion;
 + (void) getKeywordsForText: (NSString *) text withCompletion: (CompletionHandler) completion;
 + (void) getConceptsForText: (NSString *) text withCompletion: (CompletionHandler) completion;
-+ (void) getEntitiesForText: (NSString *) text withCompletion: (CompletionHandler) completion;
++ (void) getEntitiesForText: (NSString *) text withCompletion:(void (^)(NSDictionary *, NSError *))completion;
 
 @end

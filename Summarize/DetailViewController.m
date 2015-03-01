@@ -19,8 +19,9 @@
 @property (strong, nonatomic) NSArray *courses;
 @property (strong, nonatomic) NSMutableArray *keywords;
 @property (strong, nonatomic) NSMutableArray *concepts;
-@property (strong, nonatomic) NSMutableArray *entities;
+@property (strong, nonatomic) NSDictionary *entity;
 @property (strong, nonatomic) NSMutableArray *summaries;
+@property (strong, nonatomic) NSMutableArray *stats;
 
 @end
 
@@ -35,7 +36,7 @@
     self.navigationItem.title = @"Summary";
     self.keywords = [[NSMutableArray alloc] init];
     self.concepts = [[NSMutableArray alloc] init];
-    self.entities = [[NSMutableArray alloc] init];
+    self.entity = [[NSDictionary alloc] init];
     self.summaries = [[NSMutableArray alloc] init];
     AppDelegate *delegate = [UIApplication sharedApplication].delegate;
     self.managedObjectContext = delegate.managedObjectContext;
@@ -61,16 +62,36 @@
          }
          NSLog(@"Concepts %@", self.concepts);
      }];
-    [NLPClient getEntitiesForText:_detailText withCompletion:^(NSArray *entities, NSError *error)
+    [NLPClient getEntitiesForText:_detailText withCompletion:^(NSDictionary *entity, NSError *error)
      {
-         NSLog(@"Entities %@", entities);
-         self.entities = [NSMutableArray arrayWithArray:entities];
+         self.entity = entity;
      }];
     [NLPClient getSummaryForText:_detailText withCompletion:^(NSArray *summaries, NSError *error)
      {
          NSLog(@"Summaries %@", summaries);
          self.summaries = [NSMutableArray arrayWithArray:summaries];
      }];
+    
+    if(self.entity[@"percentage"])
+    {
+        [self.stats addObject:self.entity[@"percentage"][0]];
+    }
+    if(self.entity[@"organization"])
+    {
+        [self.stats addObject:self.entity[@"organization"][0]];
+    }
+    if(self.entity[@"date"])
+    {
+        [self.stats addObject:self.entity[@"date"][0]];
+    }
+    if(self.entity[@"money"])
+    {
+        [self.stats addObject:self.entity[@"money"][0]];
+    }
+    if(self.entity[@"person"])
+    {
+        [self.stats addObject:self.entity[@"person"][0]];
+    }
 }
 
 - (void)didReceiveMemoryWarning {
@@ -115,7 +136,7 @@
 
 - (NSInteger) tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
 {
-    return 3;
+    return self.stats.count + 2;
 }
 
 - (UITableViewCell *) tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
@@ -124,30 +145,18 @@
     
     switch(indexPath.row)
     {
-        case 0: {
+        case 1: {
             MapTableCell *mapCell = [tableView dequeueReusableCellWithIdentifier:@"MapTableCell"];
             if(mapCell == nil)
             {
                 NSLog(@"Calling map cell");
                 mapCell = [MapTableCell mapTableCell];
             }
-            [mapCell setLocationName:@"Cupertino"];
+            [mapCell setLocationName:[self.entity objectForKey:@"location"][0]];
             cell = mapCell;
         }
             break;
-        case 1: {
-            StatsTableCell *statCell = [tableView dequeueReusableCellWithIdentifier:@"StatCell"];
-            if(statCell == nil)
-            {
-                NSLog(@"Stat cell");
-                statCell = [StatsTableCell statsTableCell];
-            }
-            statCell.statLabel.text = @"80%";
-            statCell.statLabel.textColor = [UIColor colorWithRed:250.0f/255.0f green:60.0f/255.0f blue:57.0f/255.0f alpha:1.0000];
-            cell = statCell;
-        }
-            break;
-        case 2: {
+        case 0: {
             SummaryTableCell *summaryCell = [tableView dequeueReusableCellWithIdentifier:@"SummaryCell"];
             if(summaryCell == nil)
             {
@@ -158,6 +167,18 @@
             cell = summaryCell;
         }
             break;
+        default:
+        {
+            StatsTableCell *statCell = [tableView dequeueReusableCellWithIdentifier:@"StatCell"];
+            if(statCell == nil)
+            {
+                NSLog(@"Stat cell");
+                statCell = [StatsTableCell statsTableCell];
+            }
+            statCell.statLabel.text = [self.stats objectAtIndex:indexPath.row-2];
+            statCell.statLabel.textColor = [UIColor colorWithRed:250.0f/255.0f green:60.0f/255.0f blue:57.0f/255.0f alpha:1.0000];
+            cell = statCell;
+        }
     }
     return cell;
 }
@@ -169,10 +190,6 @@
         return 223;
     }
     else if (indexPath.row == 1)
-    {
-        return 89;
-    }
-    else if (indexPath.row == 2)
     {
         return 200;
     }
